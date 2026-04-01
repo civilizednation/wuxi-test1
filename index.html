@@ -1,134 +1,195 @@
-<script type="module">
-    const SUPABASE_URL = 'https://nydnthkqvpajufbycxjq.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_LWqTdLhSkspLke1HvFsmVA_KOYnGGaY';
-    const { createClient } = supabase;
-    const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const tableName = 'cnation_birthdays';
+<!DOCTYPE html>
+<html lang="ko">
 
-    // 1. 기존 18명 명단 (DB 속성명과 동일하게 birth_date, is_lunar로 수정완료)
-    const defaultMembers = [
-        { id: 'local_1', name: "Edward(문명국)", birth_date: "1975-08-12", is_lunar: false },
-        { id: 'local_2', name: "Theo(김태욱)", birth_date: "1985-02-12", is_lunar: false },
-        { id: 'local_3', name: "Aiden(이경한)", birth_date: "1982-07-02", is_lunar: false },
-        { id: 'local_4', name: "Jeffers(黄竞)", birth_date: "1992-10-28", is_lunar: false },
-        { id: 'local_5', name: "Diviner(刘珠珠)", birth_date: "1990-07-13", is_lunar: true },
-        { id: 'local_6', name: "Thorin(封猛)", birth_date: "1989-03-28", is_lunar: false },
-        { id: 'local_7', name: "Steven(张佳炜)", birth_date: "1997-01-02", is_lunar: false },
-        { id: 'local_8', name: "Dragon(정용선)", birth_date: "1983-02-02", is_lunar: false },
-        { id: 'local_9', name: "Tim(이태선)", birth_date: "1993-10-18", is_lunar: false },
-        { id: 'local_10', name: "Damon(김수민)", birth_date: "1993-02-18", is_lunar: false },
-        { id: 'local_11', name: "Cassiel(刘珊珊)", birth_date: "1989-01-16", is_lunar: false },
-        { id: 'local_12', name: "Shirley(江丽萍)", birth_date: "1985-12-27", is_lunar: false },
-        { id: 'local_13', name: "Anakin(강경두)", birth_date: "1973-08-06", is_lunar: false },
-        { id: 'local_14', name: "William(박원경)", birth_date: "1979-05-29", is_lunar: false },
-        { id: 'local_15', name: "Seabetty(张玉芹)", birth_date: "1979-12-24", is_lunar: false },
-        { id: 'local_16', name: "Hagen(陈冠龙)", birth_date: "1985-02-23", is_lunar: false },
-        { id: 'local_17', name: "Echo(양玉盈)", birth_date: "1997-04-06", is_lunar: false },
-        { id: 'local_18', name: "Mason(孟岩)", birth_date: "1999-03-25", is_lunar: true }
-    ];
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>우시개발팀 생일 알림이 (无锡开发团队) 🎂</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
 
-    // 2. 생일 계산 로직 (기존과 동일)
-    function getInfo(birthStr, isLunar) {
-        if (!birthStr) return { diff: 999, masked: 'N/A', display: 'N/A' };
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const [y, m, d] = birthStr.split('-').map(Number);
-        const curY = today.getFullYear();
+<body class="bg-blue-50 min-h-screen p-4 font-sans pb-24 text-gray-800">
 
-        let targetSolar;
-        if (isLunar) {
-            try {
-                const l = Lunar.fromYmd(curY, m, d);
-                const s = l.getSolar();
-                targetSolar = new Date(s.getYear(), s.getMonth() - 1, s.getDay());
-            } catch (e) { targetSolar = new Date(curY, m - 1, d); }
-        } else {
-            targetSolar = new Date(curY, m - 1, d);
-        }
+    <div class="max-w-md mx-auto shadow-2xl rounded-3xl bg-white overflow-hidden border-4 border-white mb-20">
+        <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-8 text-center">
+            <h1 class="text-2xl font-black mb-1 tracking-tight">우시개발팀 생일 🎂</h1>
+            <h2 class="text-xs font-bold text-blue-100 opacity-80 uppercase tracking-widest text-[10px]">Wuxi Dev Team
+                Birthdays</h2>
+            <p
+                class="text-[9px] mt-4 bg-white/20 inline-block px-3 py-1 rounded-full uppercase tracking-tighter font-bold">
+                Project: cnation-birthday-manager</p>
+        </div>
 
-        if (targetSolar < today) {
+        <div class="p-5 space-y-4" id="birthdayList">
+            <div class="text-center py-12 text-gray-400 italic animate-pulse">데이터를 동기화 중입니다...</div>
+        </div>
+
+        <div class="p-6 bg-gray-50 border-t border-gray-100">
+            <h3 class="text-xs font-black text-gray-400 mb-4 uppercase tracking-widest">새 멤버 추가 (添加新成员)</h3>
+            <div class="flex flex-col space-y-3">
+                <input type="text" id="nameInput" placeholder="이름 (姓名) 예: Edward"
+                    class="w-full px-4 py-3 border-2 border-gray-100 rounded-xl focus:outline-none focus:border-blue-400 text-sm shadow-sm transition-all">
+
+                <div class="flex space-x-2">
+                    <input type="date" id="dateInput"
+                        class="flex-1 px-4 py-3 border-2 border-gray-100 rounded-xl focus:outline-none focus:border-blue-400 text-sm shadow-sm transition-all text-gray-600 font-medium">
+                    <label
+                        class="flex items-center space-x-2 text-[11px] font-black text-gray-500 bg-white border-2 border-gray-100 px-4 py-2 rounded-xl cursor-pointer shadow-sm active:bg-gray-100 transition-all">
+                        <input type="checkbox" id="isLunar" class="w-4 h-4 text-blue-600 rounded focus:ring-0">
+                        <span>음력</span>
+                    </label>
+                </div>
+
+                <button id="addBtn"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-xl transition-all shadow-lg active:scale-95 text-sm uppercase tracking-widest">
+                    멤버 등록 (등록/添加) ➕
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        const SUPABASE_URL = 'https://nydnthkqvpajufbycxjq.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_LWqTdLhSkspLke1HvFsmVA_KOYnGGaY';
+        const { createClient } = supabase;
+        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const tableName = 'cnation_birthdays';
+
+        // 1. 기존 멤버 명단 (18명)
+        const defaultMembers = [
+            { id: 'local_1', name: "Edward(문명국)", birth_date: "1975-08-12", is_lunar: false },
+            { id: 'local_2', name: "Theo(김태욱)", birth_date: "1985-02-12", is_lunar: false },
+            { id: 'local_3', name: "Aiden(이경한)", birth_date: "1982-07-02", is_lunar: false },
+            { id: 'local_4', name: "Jeffers(黄竞)", birth_date: "1992-10-28", is_lunar: false },
+            { id: 'local_5', name: "Diviner(刘珠珠)", birth_date: "1990-07-13", is_lunar: true },
+            { id: 'local_6', name: "Thorin(封猛)", birth_date: "1989-03-28", is_lunar: false },
+            { id: 'local_7', name: "Steven(张佳炜)", birth_date: "1997-01-02", is_lunar: false },
+            { id: 'local_8', name: "Dragon(정용선)", birth_date: "1983-02-02", is_lunar: false },
+            { id: 'local_9', name: "Tim(이태선)", birth_date: "1993-10-18", is_lunar: false },
+            { id: 'local_10', name: "Damon(김수민)", birth_date: "1993-02-18", is_lunar: false },
+            { id: 'local_11', name: "Cassiel(刘珊珊)", birth_date: "1989-01-16", is_lunar: false },
+            { id: 'local_12', name: "Shirley(江丽萍)", birth_date: "1985-12-27", is_lunar: false },
+            { id: 'local_13', name: "Anakin(강경두)", birth_date: "1973-08-06", is_lunar: false },
+            { id: 'local_14', name: "William(박원경)", birth_date: "1979-05-29", is_lunar: false },
+            { id: 'local_15', name: "Seabetty(张玉芹)", birth_date: "1979-12-24", is_lunar: false },
+            { id: 'local_16', name: "Hagen(陈冠龙)", birth_date: "1985-02-23", is_lunar: false },
+            { id: 'local_17', name: "Echo(杨玉盈)", birth_date: "1997-04-06", is_lunar: false },
+            { id: 'local_18', name: "Mason(孟岩)", birth_date: "1999-03-25", is_lunar: true }
+        ];
+
+        // 2. 생일 계산 및 상세 정보 구성
+        function getInfo(birthStr, isLunar) {
+            if (!birthStr) return null;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const [y, m, d] = birthStr.split('-').map(Number);
+            const curY = today.getFullYear();
+
+            let targetSolar;
             if (isLunar) {
-                const l = Lunar.fromYmd(curY + 1, m, d);
-                const s = l.getSolar();
-                targetSolar = new Date(s.getYear(), s.getMonth() - 1, s.getDay());
+                try {
+                    const l = Lunar.fromYmd(curY, m, d);
+                    const s = l.getSolar();
+                    targetSolar = new Date(s.getYear(), s.getMonth() - 1, s.getDay());
+                } catch (e) { targetSolar = new Date(curY, m - 1, d); }
             } else {
-                targetSolar = new Date(curY + 1, m - 1, d);
+                targetSolar = new Date(curY, m - 1, d);
             }
+
+            if (targetSolar < today) {
+                if (isLunar) {
+                    const l = Lunar.fromYmd(curY + 1, m, d);
+                    const s = l.getSolar();
+                    targetSolar = new Date(s.getYear(), s.getMonth() - 1, s.getDay());
+                } else {
+                    targetSolar = new Date(curY + 1, m - 1, d);
+                }
+            }
+
+            const diff = Math.ceil((targetSolar - today) / 86400000);
+
+            return {
+                diff,
+                // 팀장님 요청 상세 포맷
+                original: `${y}년 ${m}월 ${d}일`,
+                thisYear: `${targetSolar.getMonth() + 1}월 ${targetSolar.getDate()}일`
+            };
         }
 
-        const diff = Math.ceil((targetSolar - today) / 86400000);
-        return {
-            diff,
-            masked: `OOOO-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`,
-            display: `${targetSolar.getMonth() + 1}월 ${targetSolar.getDate()}일`
-        };
-    }
+        // 3. 렌더링 함수
+        async function fetchAndRender() {
+            const list = document.getElementById('birthdayList');
+            const { data: dbMembers, error } = await _supabase.from(tableName).select('*');
+            if (error) console.error("DB 로드 실패:", error);
 
-    // 3. 데이터 통합 및 렌더링
-    async function fetchAndRender() {
-        const list = document.getElementById('birthdayList');
+            const allMembers = [...defaultMembers, ...(dbMembers || [])];
 
-        // DB 데이터 가져오기
-        const { data: dbMembers, error } = await _supabase.from(tableName).select('*');
-        if (error) console.error("DB 데이터 로딩 중 오류:", error);
+            const processed = allMembers.map(m => ({
+                ...m,
+                info: getInfo(m.birth_date, m.is_lunar)
+            }));
 
-        // 로컬 18명 + DB에서 가져온 멤버 합치기
-        const allMembers = [...defaultMembers, ...(dbMembers || [])];
+            processed.sort((a, b) => a.info.diff - b.info.diff);
 
-        const processed = allMembers.map(m => ({
-            ...m,
-            info: getInfo(m.birth_date, m.is_lunar) // 속성명 일치!
-        }));
-
-        // D-Day 순 정렬
-        processed.sort((a, b) => a.info.diff - b.info.diff);
-
-        list.innerHTML = processed.map(m => {
-            const isToday = m.info.diff === 0;
-            const isLocal = String(m.id).startsWith('local_');
-            return `
-            <div class="flex items-center justify-between p-4 rounded-2xl border-2 ${isToday ? 'border-red-400 bg-red-50 ring-4 ring-red-100' : 'border-gray-100 bg-white'} shadow-sm">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="font-black text-gray-800 text-lg">${m.name}</span>
-                        <span class="text-[9px] font-bold px-2 py-0.5 rounded-full ${m.is_lunar ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'}">
-                            ${m.is_lunar ? '음력' : '양력'}
-                        </span>
+            list.innerHTML = processed.map(m => {
+                const isToday = m.info.diff === 0;
+                const isLocal = String(m.id).startsWith('local_');
+                return `
+                <div class="flex items-center justify-between p-4 rounded-2xl border-2 ${isToday ? 'border-red-400 bg-red-50 ring-4 ring-red-100' : 'border-gray-100 bg-white'} shadow-sm">
+                    <div>
+                        <div class="flex items-center gap-2 mb-1.5">
+                            <span class="font-black text-gray-800 text-lg tracking-tight">${m.name}</span>
+                            <span class="text-[9px] font-black px-2 py-0.5 rounded-full ${m.is_lunar ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'}">
+                                ${m.is_lunar ? '음력' : '양력'}
+                            </span>
+                        </div>
+                        <div class="space-y-0.5">
+                            <p class="text-[10px] font-bold text-gray-400">
+                                실제생일 : <span class="font-medium text-gray-400">${m.info.original}</span>
+                            </p>
+                            <p class="text-[10px] font-bold text-gray-500">
+                                올해생일 : <span class="font-black text-blue-600">${m.info.thisYear}</span>
+                            </p>
+                        </div>
                     </div>
-                    <p class="text-[10px] font-medium text-gray-400 mt-1 uppercase">B-DAY: ${m.info.masked} / ${m.info.display}</p>
-                </div>
-                <div class="text-right flex flex-col items-end gap-2">
-                    <span class="text-xl font-black ${isToday ? 'text-red-500 animate-bounce' : 'text-blue-600'}">
-                        ${isToday ? 'D-Day 🎂' : 'D-' + m.info.diff}
-                    </span>
-                    ${!isLocal ? `<button onclick="deleteMember('${m.id}')" class="text-[10px] text-gray-300 hover:text-red-500 font-bold underline">삭제 (删除)</button>` : ''}
-                </div>
-            </div>`;
-        }).join('');
-    }
-
-    // 4. 추가 및 삭제 로직
-    window.addMember = async () => {
-        const name = document.getElementById('nameInput').value;
-        const birth_date = document.getElementById('dateInput').value;
-        const is_lunar = document.getElementById('isLunar').checked;
-        if (!name || !birth_date) return alert('정보를 입력해주세요!');
-        const { error } = await _supabase.from(tableName).insert([{ name, birth_date, is_lunar }]);
-        if (error) alert('저장 실패: ' + error.message);
-        else {
-            document.getElementById('nameInput').value = '';
-            document.getElementById('dateInput').value = '';
-            fetchAndRender();
+                    <div class="text-right flex flex-col items-end gap-2">
+                        <span class="text-xl font-black ${isToday ? 'text-red-500 animate-bounce' : 'text-blue-700'}">
+                            ${isToday ? 'D-Day 🎂' : 'D-' + m.info.diff}
+                        </span>
+                        ${!isLocal ? `<button onclick="deleteMember('${m.id}')" class="text-[10px] text-gray-300 hover:text-red-500 font-bold underline decoration-dotted transition-colors">삭제(删除)</button>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
         }
-    };
 
-    window.deleteMember = async (id) => {
-        if (!confirm('정말 삭제하시겠습니까?')) return;
-        const { error } = await _supabase.from(tableName).delete().eq('id', id);
-        if (error) alert('삭제 실패: ' + error.message);
-        else fetchAndRender();
-    };
+        // 4. 추가/삭제 전역 함수
+        window.addMember = async () => {
+            const name = document.getElementById('nameInput').value;
+            const birth_date = document.getElementById('dateInput').value;
+            const is_lunar = document.getElementById('isLunar').checked;
+            if (!name || !birth_date) return alert('이름과 날짜를 모두 입력해주세요!');
+            const { error } = await _supabase.from(tableName).insert([{ name, birth_date, is_lunar }]);
+            if (error) alert('저장 실패: ' + error.message);
+            else {
+                document.getElementById('nameInput').value = '';
+                document.getElementById('dateInput').value = '';
+                document.getElementById('isLunar').checked = false;
+                fetchAndRender();
+            }
+        };
 
-    document.getElementById('addBtn').onclick = window.addMember;
-    fetchAndRender();
-</script>
+        window.deleteMember = async (id) => {
+            if (!confirm('정말 삭제하시겠습니까?')) return;
+            const { error } = await _supabase.from(tableName).delete().eq('id', id);
+            if (error) alert('삭제 실패: ' + error.message);
+            else fetchAndRender();
+        };
+
+        document.getElementById('addBtn').onclick = window.addMember;
+        fetchAndRender();
+    </script>
+</body>
+
+</html>
