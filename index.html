@@ -3,6 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>우시개발팀 생일 알림이 (无锡开发团队) 🎂</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -79,7 +82,7 @@
             { id: 'local_18', name: "Mason(孟岩)", birth_date: "1999-03-25", is_lunar: true }
         ];
 
-        // 2. 생일 계산 및 상세 정보 구성
+        // 2. 생일 계산 및 상세 정보 (OOOO년 마스킹 적용)
         function getInfo(birthStr, isLunar) {
             if (!birthStr) return null;
             const today = new Date();
@@ -112,8 +115,9 @@
 
             return {
                 diff,
-                // 팀장님 요청 상세 포맷
-                original: `${y}년 ${m}월 ${d}일`,
+                // 팀장님 요청: 실제생일 OOOO년으로 마스킹
+                original: `OOOO년 ${m}월 ${d}일`,
+                // 팀장님 요청: 올해 축하할 생일 날짜
                 thisYear: `${targetSolar.getMonth() + 1}월 ${targetSolar.getDate()}일`
             };
         }
@@ -139,18 +143,18 @@
                 return `
                 <div class="flex items-center justify-between p-4 rounded-2xl border-2 ${isToday ? 'border-red-400 bg-red-50 ring-4 ring-red-100' : 'border-gray-100 bg-white'} shadow-sm">
                     <div>
-                        <div class="flex items-center gap-2 mb-1.5">
+                        <div class="flex items-center gap-2 mb-1">
                             <span class="font-black text-gray-800 text-lg tracking-tight">${m.name}</span>
                             <span class="text-[9px] font-black px-2 py-0.5 rounded-full ${m.is_lunar ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'}">
                                 ${m.is_lunar ? '음력' : '양력'}
                             </span>
                         </div>
-                        <div class="space-y-0.5">
-                            <p class="text-[10px] font-bold text-gray-400">
-                                실제생일 : <span class="font-medium text-gray-400">${m.info.original}</span>
+                        <div class="text-[10px] space-y-0.5">
+                            <p class="text-gray-400 font-medium">
+                                실제생일 : ${m.info.original}
                             </p>
-                            <p class="text-[10px] font-bold text-gray-500">
-                                올해생일 : <span class="font-black text-blue-600">${m.info.thisYear}</span>
+                            <p class="text-gray-500 font-bold">
+                                올해생일 : <span class="text-blue-600">${m.info.thisYear}</span>
                             </p>
                         </div>
                     </div>
