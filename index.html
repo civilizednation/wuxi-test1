@@ -115,9 +115,9 @@
 
             return {
                 diff,
-                // 팀장님 요청: 실제생일 OOOO년으로 마스킹
+                // 실제생일 연도 마스킹 완벽 적용
                 original: `OOOO년 ${m}월 ${d}일`,
-                // 팀장님 요청: 올해 축하할 생일 날짜
+                // 올해생일 날짜
                 thisYear: `${targetSolar.getMonth() + 1}월 ${targetSolar.getDate()}일`
             };
         }
