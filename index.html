@@ -4,64 +4,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>우시개발팀 생일 알림이 (无锡开发团队生日) 🎂</title>
+    <title>우시개발팀 생일 알림이 (无锡开发团队) 🎂</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
-<body class="bg-indigo-50 min-h-screen p-4 font-sans text-gray-800">
+<body class="bg-blue-50 min-h-screen p-4 font-sans pb-24">
 
-    <div class="max-w-md mx-auto shadow-2xl overflow-hidden rounded-3xl bg-white border-4 border-white">
-        <div class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white p-8 text-center">
+    <div class="max-w-md mx-auto shadow-2xl rounded-3xl bg-white overflow-hidden border-4 border-white mb-20">
+        <div class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white p-8 text-center">
             <h1 class="text-2xl font-black mb-1">우시개발팀 생일 🎂</h1>
             <h2 class="text-xs font-bold text-blue-100 opacity-80 uppercase tracking-widest">Wuxi Dev Team Birthdays
             </h2>
-            <p class="text-[10px] mt-4 bg-white/20 inline-block px-3 py-1 rounded-full">Project: cnation-birthday-web
-            </p>
+            <p class="text-[10px] mt-4 bg-white/20 inline-block px-3 py-1 rounded-full uppercase tracking-tighter">
+                Project: cnation-birthday-manager</p>
         </div>
 
         <div class="p-5 space-y-4" id="birthdayList">
-            <div class="text-center py-10">
-                <div
-                    class="animate-spin inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mb-4">
+            <div class="text-center py-10 text-gray-400 italic">데이터를 동기화 중입니다... (正在同步...)</div>
+        </div>
+
+        <div class="p-6 bg-gray-50 border-t border-gray-100">
+            <h3 class="text-sm font-bold text-gray-500 mb-4">팀원 추가 (添加新成员)</h3>
+            <div class="flex flex-col space-y-3">
+                <input type="text" id="nameInput" placeholder="이름 (姓名) 예: Edward"
+                    class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm shadow-sm">
+
+                <div class="flex space-x-2">
+                    <input type="date" id="dateInput"
+                        class="flex-1 px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm shadow-sm">
+                    <label
+                        class="flex items-center space-x-2 text-xs font-bold text-gray-600 bg-white border border-gray-200 px-4 py-2 rounded-xl cursor-pointer shadow-sm active:bg-gray-100">
+                        <input type="checkbox" id="isLunar" class="w-4 h-4 text-blue-600 rounded">
+                        <span>음력(农历)</span>
+                    </label>
                 </div>
-                <p class="text-sm text-gray-400 font-medium">데이터를 불러오는 중입니다... (正在加载...)</p>
+
+                <button id="addBtn"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-xl transition-all shadow-lg active:scale-95 text-sm">
+                    멤버 등록 (등록/添加) ➕
+                </button>
             </div>
         </div>
     </div>
 
     <script type="module">
-        // 1. Supabase 설정 (가입 후 받은 정보를 여기에 입력하세요!)
+        // 1. 제공해주신 Supabase 정보 반영
         const SUPABASE_URL = 'https://nydnthkqvpajufbycxjq.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_LWqTdLhSkspLke1HvFsmVA_KOYnGGaY';
         const { createClient } = supabase;
         const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 2. 고정 팀원 데이터 (최초 1회 DB에 넣거나, 코드에서 관리)
-        const teamMembers = [
-            { name: "Edward(문명국)", date: "1975-08-12", isLunar: false },
-            { name: "Theo(김태욱)", date: "1985-02-12", isLunar: false },
-            { name: "Aiden(이경한)", date: "1982-07-02", isLunar: false },
-            { name: "Jeffers(黄竞)", date: "1992-10-28", isLunar: false },
-            { name: "Diviner(刘珠珠)", date: "1990-07-13", isLunar: true },
-            { name: "Thorin(封猛)", date: "1989-03-28", isLunar: false },
-            { name: "Steven(张佳炜)", date: "1997-01-02", isLunar: false },
-            { name: "Dragon(정용선)", date: "1983-02-02", isLunar: false },
-            { name: "Tim(이태선)", date: "1993-10-18", isLunar: false },
-            { name: "Damon(김수민)", date: "1993-02-18", isLunar: false },
-            { name: "Cassiel(刘珊珊)", date: "1989-01-16", isLunar: false },
-            { name: "Shirley(江丽萍)", date: "1985-12-27", isLunar: false },
-            { name: "Anakin(강경두)", date: "1973-08-06", isLunar: false },
-            { name: "William(박원경)", date: "1979-05-29", isLunar: false },
-            { name: "Seabetty(张玉芹)", date: "1979-12-24", isLunar: false },
-            { name: "Hagen(陈冠龙)", date: "1985-02-23", isLunar: false },
-            { name: "Echo(杨玉盈)", date: "1997-04-06", isLunar: false },
-            { name: "Mason(孟岩)", date: "1999-03-25", isLunar: true }
-        ];
+        const tableName = 'cnation_birthdays'; // 테이블 이름 규칙
 
-        // 3. 생일 계산 로직 (익명화 포함)
+        // 2. 생일 계산 함수 (OOOO 마스킹 적용)
         function getInfo(birthStr, isLunar) {
+            if (!birthStr) return null;
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const [y, m, d] = birthStr.split('-').map(Number);
@@ -94,33 +93,87 @@
             };
         }
 
-        // 4. 화면 렌더링
-        function render() {
-            const list = document.getElementById('birthdayList');
-            const data = teamMembers.map(m => ({ ...m, info: getInfo(m.date, m.isLunar) }));
-            data.sort((a, b) => a.info.diff - b.info.diff);
+        // 3. 실시간 데이터 불러오기
+        async function fetchBirthdays() {
+            const { data, error } = await _supabase
+                .from(tableName)
+                .select('*');
 
-            list.innerHTML = data.map(m => `
-                <div class="flex items-center justify-between p-4 rounded-2xl border-2 ${m.info.diff === 0 ? 'border-red-400 bg-red-50' : 'border-gray-100 bg-white'} shadow-sm transition-transform active:scale-95">
+            if (error) {
+                console.error('Fetch Error:', error);
+                document.getElementById('birthdayList').innerHTML = `<p class="text-center text-red-400 text-xs py-10 tracking-tighter italic">데이터 로딩에 실패했습니다. 테이블 생성을 확인해주세요!</p>`;
+                return;
+            }
+
+            const list = document.getElementById('birthdayList');
+            if (!data || data.length === 0) {
+                list.innerHTML = '<p class="text-center text-gray-400 text-sm py-10 font-medium">등록된 팀원이 없습니다. 아래에서 추가해보세요! ✨</p>';
+                return;
+            }
+
+            const processed = data.map(m => ({ ...m, info: getInfo(m.birth_date, m.is_lunar) }));
+            processed.sort((a, b) => a.info.diff - b.info.diff);
+
+            list.innerHTML = processed.map(m => {
+                const isToday = m.info.diff === 0;
+                return `
+                <div class="flex items-center justify-between p-4 rounded-2xl border-2 ${isToday ? 'border-red-400 bg-red-50 ring-4 ring-red-100' : 'border-gray-100 bg-white'} shadow-sm transition-all hover:shadow-md">
                     <div>
                         <div class="flex items-center gap-2">
-                            <span class="font-bold text-gray-900">${m.name}</span>
-                            <span class="text-[9px] px-2 py-0.5 rounded-full ${m.isLunar ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'}">
-                                ${m.isLunar ? '음력' : '양력'}
+                            <span class="font-black text-gray-800 text-lg">${m.name}</span>
+                            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full ${m.is_lunar ? 'bg-indigo-100 text-indigo-600' : 'bg-gray-100 text-gray-500'}">
+                                ${m.is_lunar ? '음력' : '양력'}
                             </span>
                         </div>
-                        <p class="text-[10px] text-gray-400 mt-1">생일: ${m.info.masked} / 올해: ${m.info.display}</p>
+                        <p class="text-[10px] font-medium text-gray-400 mt-1">생일: ${m.info.masked} / 올해: ${m.info.display}</p>
                     </div>
-                    <div class="text-right">
-                        <span class="text-xl font-black ${m.info.diff === 0 ? 'text-red-500' : 'text-blue-600'}">
-                            ${m.info.diff === 0 ? 'D-Day' : 'D-' + m.info.diff}
+                    <div class="text-right flex flex-col items-end gap-2">
+                        <span class="text-xl font-black ${isToday ? 'text-red-500 animate-bounce' : 'text-blue-600'}">
+                            ${isToday ? 'D-Day 🎂' : 'D-' + m.info.diff}
                         </span>
+                        <button onclick="deleteMember('${m.id}')" class="text-[9px] text-gray-300 hover:text-red-500 font-bold underline decoration-dotted">삭제(删除)</button>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
-        render();
+        // 4. 멤버 추가 로직
+        async function addMember() {
+            const name = document.getElementById('nameInput').value;
+            const birth_date = document.getElementById('dateInput').value;
+            const is_lunar = document.getElementById('isLunar').checked;
+
+            if (!name || !birth_date) {
+                alert('이름과 날짜를 모두 입력해주세요!');
+                return;
+            }
+
+            const { error } = await _supabase
+                .from(tableName)
+                .insert([{ name, birth_date, is_lunar }]);
+
+            if (error) {
+                alert('저장 실패! 테이블 설정을 다시 확인해주세요.\n' + error.message);
+            } else {
+                document.getElementById('nameInput').value = '';
+                document.getElementById('dateInput').value = '';
+                document.getElementById('isLunar').checked = false;
+                fetchBirthdays(); // 목록 갱신
+            }
+        }
+
+        // 5. 삭제 로직
+        window.deleteMember = async (id) => {
+            if (!confirm('정말 삭제하시겠습니까? (确定 삭제?)')) return;
+            const { error } = await _supabase.from(tableName).delete().eq('id', id);
+            if (error) alert('삭제 실패: ' + error.message);
+            else fetchBirthdays();
+        };
+
+        // 초기 실행 설정
+        document.getElementById('addBtn').addEventListener('click', addMember);
+        fetchBirthdays();
     </script>
 </body>
 
